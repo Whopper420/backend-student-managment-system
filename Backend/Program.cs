@@ -229,4 +229,35 @@ app.MapGet("/enrollments", () =>
     return list;
 });
 
+app.MapGet("/courses/{id}/users", (int id) =>
+{
+    var list = new List<User>();
+
+    using var conn = db.CreateConnection();
+    conn.Open();
+
+    var cmd = new MySqlCommand(@"
+        SELECT u.id, u.name, u.role
+        FROM users u
+        JOIN enrollments e ON e.user_id = u.id
+        WHERE e.course_id = @id
+    ", conn);
+
+    cmd.Parameters.AddWithValue("@id", id);
+
+    var reader = cmd.ExecuteReader();
+
+    while (reader.Read())
+    {
+        list.Add(new User
+        {
+            Id = reader.GetInt32(0),
+            Name = reader.GetString(1),
+            Role = reader.GetString(2)
+        });
+    }
+
+    return list;
+});
+
 app.Run();

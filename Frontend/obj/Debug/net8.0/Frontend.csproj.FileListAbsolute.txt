@@ -1030,3 +1030,12 @@
 /home/jefferyepstein/dev/test/test/Frontend/obj/Debug/net8.0/refint/Frontend.dll
 /home/jefferyepstein/dev/test/test/Frontend/obj/Debug/net8.0/Frontend.pdb
 /home/jefferyepstein/dev/test/test/Frontend/obj/Debug/net8.0/ref/Frontend.dll
+/home/jefferyepstein/dev/test/test/Frontend/bin/Debug/net8.0/wwwroot/_framework/SimpleApp.Shared.pdb
+/home/jefferyepstein/dev/test/test/Frontend/bin/Debug/net8.0/wwwroot/_framework/SimpleApp.Shared.wasm
+/home/jefferyepstein/dev/test/test/Frontend/bin/Debug/net8.0/wwwroot/_framework/SimpleApp.Shared.pdb.gz
+/home/jefferyepstein/dev/test/test/Frontend/bin/Debug/net8.0/wwwroot/_framework/SimpleApp.Shared.wasm.gz
+/home/jefferyepstein/dev/test/test/Frontend/bin/Debug/net8.0/SimpleApp.Shared.dll
+/home/jefferyepstein/dev/test/test/Frontend/bin/Debug/net8.0/SimpleApp.Shared.pdb
+/home/jefferyepstein/dev/test/test/Frontend/obj/Debug/net8.0/webcil/SimpleApp.Shared.wasm
+/home/jefferyepstein/dev/test/test/Frontend/obj/Debug/net8.0/compressed/mxfqdz6aou.gz
+/home/jefferyepstein/dev/test/test/Frontend/obj/Debug/net8.0/compressed/l5uaa1rxdf.gz

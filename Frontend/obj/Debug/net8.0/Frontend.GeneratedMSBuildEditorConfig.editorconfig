@@ -30,8 +30,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ291bnRlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/home/jefferyepstein/dev/test/test/Frontend/Pages/Courses.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ291cnNlcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/jefferyepstein/dev/test/test/Frontend/Pages/CourseUsers.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ291cnNlVXNlcnMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [/home/jefferyepstein/dev/test/test/Frontend/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSG9tZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/jefferyepstein/dev/test/test/Frontend/Pages/StudentCourses.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU3R1ZGVudENvdXJzZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [/home/jefferyepstein/dev/test/test/Frontend/Pages/Users.razor]

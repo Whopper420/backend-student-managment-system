@@ -1,0 +1,30 @@
+@page "/courses"
+@inject HttpClient Http
+
+<h3>Courses</h3>
+
+@if (courses == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var c in courses)
+        {
+            <li>
+                @c.Title (Teacher: @c.TeacherId)
+                <a href="/course/@c.Id">View Students</a>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    List<Course>? courses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        courses = await Http.GetFromJsonAsync<List<Course>>("courses");
+    }
+}

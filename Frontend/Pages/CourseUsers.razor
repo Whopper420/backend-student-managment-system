@@ -1,0 +1,29 @@
+@page "/course/{id:int}"
+@inject HttpClient Http
+
+<h3>Course Students</h3>
+
+@if (users == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var u in users)
+        {
+            <li>@u.Name (@u.Role)</li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+
+    List<User>? users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await Http.GetFromJsonAsync<List<User>>($"courses/{id}/users");
+    }
+}

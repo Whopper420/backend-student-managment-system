@@ -1,0 +1,51 @@
+@page "/users"
+@inject HttpClient Http
+
+<h3>Users</h3>
+
+@if (users == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var u in users)
+        {
+            <li>@u.Name (@u.Role)</li>
+        }
+    </ul>
+}
+
+@code {
+    List<User>? users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await Http.GetFromJsonAsync<List<User>>("users");
+    }
+
+    public class User
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public string? Role { get; set; }
+    }
+}
+
+<h4>Add User</h4>
+
+<input @bind="newUser.Name" placeholder="Name" />
+<input @bind="newUser.Role" placeholder="Role" />
+
+<button @onclick="AddUser">Add</button>
+
+@code {
+    User newUser = new();
+
+    async Task AddUser()
+    {
+        await Http.PostAsJsonAsync("users", newUser);
+        users = await Http.GetFromJsonAsync<List<User>>("users");
+    }
+}

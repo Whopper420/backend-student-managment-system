@@ -1,0 +1,12 @@
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/bin/Debug/net8.0/SimpleApp.Shared.deps.json
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/bin/Debug/net8.0/SimpleApp.Shared.dll
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/bin/Debug/net8.0/SimpleApp.Shared.pdb
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/obj/Debug/net8.0/SimpleApp.Shared.GeneratedMSBuildEditorConfig.editorconfig
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/obj/Debug/net8.0/SimpleApp.Shared.AssemblyInfoInputs.cache
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/obj/Debug/net8.0/SimpleApp.Shared.AssemblyInfo.cs
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/obj/Debug/net8.0/SimpleApp.Shared.csproj.CoreCompileInputs.cache
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/obj/Debug/net8.0/SimpleApp.Shared.sourcelink.json
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/obj/Debug/net8.0/SimpleApp.Shared.dll
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/obj/Debug/net8.0/refint/SimpleApp.Shared.dll
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/obj/Debug/net8.0/SimpleApp.Shared.pdb
+/home/jefferyepstein/dev/test/test/SimpleApp.Shared/obj/Debug/net8.0/ref/SimpleApp.Shared.dll

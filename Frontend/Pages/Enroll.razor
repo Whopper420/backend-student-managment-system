@@ -1,0 +1,30 @@
+@page "/enrollment"
+@inject HttpClient Http
+
+<h3>Enroll Student</h3>
+
+<input @bind="userId" type="number" placeholder="User ID" />
+<input @bind="courseId" type="number" placeholder="Course ID" />
+
+<button @onclick="Enrollment">Enroll</button>
+
+<p>@message</p>
+
+@code {
+    int userId;
+    int courseId;
+    string message = "";
+
+    async Task Enrollment()
+    {
+        var req = new EnrollmentRequest
+        {
+            UserId = userId,
+            CourseId = courseId
+        };
+
+        var res = await Http.PostAsJsonAsync("enroll", req);
+
+        message = await res.Content.ReadAsStringAsync();
+    }
+}

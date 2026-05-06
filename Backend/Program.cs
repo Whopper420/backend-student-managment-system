@@ -1,263 +1,154 @@
+using Dapper;
+using Npgsql;
 using SimpleApp.Shared.Models;
-using MySql.Data.MySqlClient;
-using Backend.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
-        policy
-            .WithOrigins("http://localhost:5188")
-            .AllowAnyHeader()
-            .AllowAnyMethod());
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod());
 });
+
 var app = builder.Build();
 
 app.UseRouting();
-app.UseCors("AllowFrontend");
+app.UseCors("AllowAll");
 
+app.MapGet("/", () => "OK");
 
-var db = new MySqlConnectionFactory();
+string connString =
+    "Host=localhost;Port=5432;Database=edu_db;Username=edu_dev;Password=password";
 
-app.MapGet("/", () => "Edu system running");
 
 
 app.MapGet("/users", () =>
 {
-    var list = new List<User>();
-
-    using var conn = db.CreateConnection();
-    conn.Open();
-
-    var cmd = new MySqlCommand("SELECT id, name, role FROM users", conn);
-    var reader = cmd.ExecuteReader();
-
-    while (reader.Read())
-    {
-        list.Add(new User
-        {
-            Id = reader.GetInt32(0),
-            Name = reader.GetString(1),
-            Role = reader.GetString(2)
-        });
-    }
-
-    return list;
+    using var conn = new NpgsqlConnection(connString);
+    return conn.Query<User>(
+        "SELECT id, name, role FROM users"
+    ).ToList();
 });
 
 app.MapPost("/users", (User user) =>
 {
-    using var conn = db.CreateConnection();
-    conn.Open();
+    using var conn = new NpgsqlConnection(connString);
 
-    var cmd = new MySqlCommand(
-        "INSERT INTO users(name, role) VALUES(@name, @role)", conn);
+    conn.Execute(@"
+        INSERT INTO users(name, role)
+        VALUES (@Name, @Role)
+    ", user);
 
-    cmd.Parameters.AddWithValue("@name", user.Name);
-    cmd.Parameters.AddWithValue("@role", user.Role);
-
-    cmd.ExecuteNonQuery();
-
-    return "User added";
+    return Results.Ok("User added");
 });
 
 
 app.MapGet("/courses", () =>
 {
-    var list = new List<Course>();
+    using var conn = new NpgsqlConnection(connString);
 
-    using var conn = db.CreateConnection();
-    conn.Open();
-
-    var cmd = new MySqlCommand("SELECT id, title, teacher_id FROM courses", conn);
-    var reader = cmd.ExecuteReader();
-
-    while (reader.Read())
-    {
-        list.Add(new Course
-        {
-            Id = reader.GetInt32(0),
-            Title = reader.GetString(1),
-            TeacherId = reader.GetInt32(2)
-        });
-    }
-
-    return list;
+    return conn.Query<Course>(@"
+        SELECT id, title, teacher_id AS TeacherId
+        FROM courses
+    ").ToList();
 });
 
 app.MapPost("/courses", (Course course) =>
 {
-    using var conn = db.CreateConnection();
-    conn.Open();
+    using var conn = new NpgsqlConnection(connString);
 
-    var cmd = new MySqlCommand(
-        "INSERT INTO courses(title, teacher_id) VALUES(@title, @teacher_id)", conn);
+    conn.Execute(@"
+        INSERT INTO courses(title, teacher_id)
+        VALUES (@Title, @TeacherId)
+    ", course);
 
-    cmd.Parameters.AddWithValue("@title", course.Title);
-    cmd.Parameters.AddWithValue("@teacher_id", course.TeacherId);
-
-    cmd.ExecuteNonQuery();
-
-    return "Course added";
+    return Results.Ok("Course added");
 });
-
 
 app.MapGet("/assignments", () =>
 {
-    var list = new List<Assignment>();
+    using var conn = new NpgsqlConnection(connString);
 
-    using var conn = db.CreateConnection();
-    conn.Open();
-
-    var cmd = new MySqlCommand("SELECT id, title, course_id FROM assignments", conn);
-    var reader = cmd.ExecuteReader();
-
-    while (reader.Read())
-    {
-        list.Add(new Assignment
-        {
-            Id = reader.GetInt32(0),
-            Title = reader.GetString(1),
-            CourseId = reader.GetInt32(2)
-        });
-    }
-
-    return list;
+    return conn.Query<Assignment>(@"
+        SELECT id, title, course_id AS CourseId
+        FROM assignments
+    ").ToList();
 });
 
 app.MapPost("/assignments", (Assignment a) =>
 {
-    using var conn = db.CreateConnection();
-    conn.Open();
+    using var conn = new NpgsqlConnection(connString);
 
-    var cmd = new MySqlCommand(
-        "INSERT INTO assignments(title, course_id) VALUES(@title, @course_id)", conn);
+    conn.Execute(@"
+        INSERT INTO assignments(title, course_id)
+        VALUES (@Title, @CourseId)
+    ", a);
 
-    cmd.Parameters.AddWithValue("@title", a.Title);
-    cmd.Parameters.AddWithValue("@course_id", a.CourseId);
-
-    cmd.ExecuteNonQuery();
-
-    return "Assignment added";
+    return Results.Ok("Assignment added");
 });
+
 
 app.MapPost("/enroll", (EnrollmentRequest req) =>
 {
-    using var conn = db.CreateConnection();
-    conn.Open();
+    using var conn = new NpgsqlConnection(connString);
 
-    var userCmd = new MySqlCommand("SELECT COUNT(*) FROM users WHERE id=@id", conn);
-    userCmd.Parameters.AddWithValue("@id", req.UserId);
+    var userExists = conn.ExecuteScalar<int>(
+        "SELECT COUNT(1) FROM users WHERE id = @Id",
+        new { Id = req.UserId });
 
-    var userExists = Convert.ToInt32(userCmd.ExecuteScalar()) > 0;
+    var courseExists = conn.ExecuteScalar<int>(
+        "SELECT COUNT(1) FROM courses WHERE id = @Id",
+        new { Id = req.CourseId });
 
-    var courseCmd = new MySqlCommand("SELECT COUNT(*) FROM courses WHERE id=@id", conn);
-    courseCmd.Parameters.AddWithValue("@id", req.CourseId);
-
-    var courseExists = Convert.ToInt32(courseCmd.ExecuteScalar()) > 0;
-
-    if (!userExists || !courseExists)
+    if (userExists == 0 || courseExists == 0)
         return Results.BadRequest("Invalid user or course ID");
 
-    var insert = new MySqlCommand(
-        "INSERT INTO enrollments(user_id, course_id) VALUES(@u, @c)", conn);
-
-    insert.Parameters.AddWithValue("@u", req.UserId);
-    insert.Parameters.AddWithValue("@c", req.CourseId);
-
-    insert.ExecuteNonQuery();
+    conn.Execute(@"
+        INSERT INTO enrollments(user_id, course_id)
+        VALUES (@UserId, @CourseId)
+    ", req);
 
     return Results.Ok("Enrolled");
 });
+
+
 app.MapGet("/users/{id}/courses", (int id) =>
 {
-    var list = new List<Course>();
+    using var conn = new NpgsqlConnection(connString);
 
-    using var conn = db.CreateConnection();
-    conn.Open();
-
-    var cmd = new MySqlCommand(@"
-        SELECT c.id, c.title, c.teacher_id
+    return conn.Query<Course>(@"
+        SELECT c.id, c.title, c.teacher_id AS TeacherId
         FROM courses c
         JOIN enrollments e ON e.course_id = c.id
         WHERE e.user_id = @id
-    ", conn);
-
-    cmd.Parameters.AddWithValue("@id", id);
-
-    var reader = cmd.ExecuteReader();
-
-    while (reader.Read())
-    {
-        list.Add(new Course
-        {
-            Id = reader.GetInt32(0),
-            Title = reader.GetString(1),
-            TeacherId = reader.GetInt32(2)
-        });
-    }
-
-    return list;
+    ", new { id }).ToList();
 });
 
 app.MapGet("/enrollments", () =>
 {
-    var list = new List<object>();
+    using var conn = new NpgsqlConnection(connString);
 
-    using var conn = db.CreateConnection();
-    conn.Open();
-
-    var cmd = new MySqlCommand(@"
-        SELECT e.id, u.name, c.title
+    return conn.Query(@"
+        SELECT e.id, u.name AS User, c.title AS Course
         FROM enrollments e
         JOIN users u ON e.user_id = u.id
         JOIN courses c ON e.course_id = c.id
-    ", conn);
-
-    var reader = cmd.ExecuteReader();
-
-    while (reader.Read())
-    {
-        list.Add(new
-        {
-            Id = reader.GetInt32(0),
-            User = reader.GetString(1),
-            Course = reader.GetString(2)
-        });
-    }
-
-    return list;
+    ").ToList();
 });
+
 
 app.MapGet("/courses/{id}/users", (int id) =>
 {
-    var list = new List<User>();
+    using var conn = new NpgsqlConnection(connString);
 
-    using var conn = db.CreateConnection();
-    conn.Open();
-
-    var cmd = new MySqlCommand(@"
+    return conn.Query<User>(@"
         SELECT u.id, u.name, u.role
         FROM users u
         JOIN enrollments e ON e.user_id = u.id
         WHERE e.course_id = @id
-    ", conn);
-
-    cmd.Parameters.AddWithValue("@id", id);
-
-    var reader = cmd.ExecuteReader();
-
-    while (reader.Read())
-    {
-        list.Add(new User
-        {
-            Id = reader.GetInt32(0),
-            Name = reader.GetString(1),
-            Role = reader.GetString(2)
-        });
-    }
-
-    return list;
+    ", new { id }).ToList();
 });
 
 app.Run();

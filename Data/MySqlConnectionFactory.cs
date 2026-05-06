@@ -1,19 +1,8 @@
-using MySql.Data.MySqlClient;
-
+using Npgsql;
 namespace SimpleApp.Data;
 
-public class MySqlConnectionFactory
-{
-    private readonly string _connectionString;
+var conn = new NpgsqlConnection("Host=localhost;Port=5432;Database=edu_db;Username=edu_dev;Password=password;");
+conn.Open();
 
-    public MySqlConnectionFactory()
-    {
-        _connectionString =
-            "server=172.18.64.1;port=3306;database=edu_db;user=edu_dev;password=password";
-    }
-
-    public MySqlConnection CreateConnection()
-    {
-        return new MySqlConnection(_connectionString);
-    }
-}
+var cmd = new NpgsqlCommand("SELECT * FROM users", conn);
+var reader = cmd.ExecuteReader();

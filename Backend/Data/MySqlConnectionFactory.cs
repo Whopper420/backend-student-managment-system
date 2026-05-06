@@ -1,19 +1,18 @@
-using MySql.Data.MySqlClient;
+using Dapper;
+using Npgsql;
+using SimpleApp.Shared.Models;
 
 namespace Backend.Data;
 
-public class MySqlConnectionFactory
+public class UserRepository
 {
-    private readonly string _connectionString;
+    private readonly string _connString =
+        "Host=localhost;Port=5432;Database=edu_db;Username=edu_dev;Password=password;";
 
-    public MySqlConnectionFactory()
+    public List<User> GetUsers()
     {
-        _connectionString =
-            "server=172.18.64.1;port=3306;database=edu_db;user=edu_dev;password=password";
-    }
+        using var conn = new NpgsqlConnection(_connString);
 
-    public MySqlConnection CreateConnection()
-    {
-        return new MySqlConnection(_connectionString);
+        return conn.Query<User>("SELECT id, name, role FROM users").ToList();
     }
 }

@@ -1,6 +1,6 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Frontend</a>
+        <a class="navbar-brand" href="">EduApp</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -11,32 +11,27 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+                <span class="oi oi-home" aria-hidden="true"></span> Dashboard
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="users">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Users
+                <span class="oi oi-people" aria-hidden="true"></span> Users
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="courses">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Courses
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="add-course">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Add Course
+                <span class="oi oi-book" aria-hidden="true"></span> Courses
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="enrollment">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Enroll Student
+                <span class="oi oi-plus" aria-hidden="true"></span> Enroll Student
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="enrollments">
+                <span class="oi oi-list" aria-hidden="true"></span> All Enrollments
             </NavLink>
         </div>
     </nav>

@@ -1,0 +1,71 @@
+@page "/enrollments"
+@inject ApiService Api
+
+<PageTitle>Enrollments</PageTitle>
+
+<h2>All Enrollments</h2>
+
+@if (error != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @error
+        <button type="button" class="btn-close" @onclick="() => error = null"></button>
+    </div>
+}
+
+@if (loading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+else if (enrollments.Count == 0)
+{
+    <div class="alert alert-info">No enrollments found.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Student</th>
+                    <th>Course</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in enrollments)
+                {
+                    <tr>
+                        <td>@e.Id</td>
+                        <td>@e.User</td>
+                        <td>@e.Course</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<EnrollmentDto> enrollments = new();
+    private bool loading = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            enrollments = await Api.GetEnrollments();
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load enrollments: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}

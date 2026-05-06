@@ -1,29 +1,70 @@
 @page "/course/{id:int}"
-@inject HttpClient Http
+@inject ApiService Api
 
-<h3>Course Students</h3>
+<PageTitle>Course Students</PageTitle>
 
-@if (users == null)
+<h2>Course Students</h2>
+
+@if (error != null)
 {
-    <p>Loading...</p>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @error
+        <button type="button" class="btn-close" @onclick="() => error = null"></button>
+    </div>
+}
+
+@if (loading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+else if (users.Count == 0)
+{
+    <div class="alert alert-info">No students are enrolled in this course.</div>
 }
 else
 {
-    <ul>
-        @foreach (var u in users)
-        {
-            <li>@u.Name (@u.Role)</li>
-        }
-    </ul>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Enrolled Students (@users.Count)</h5>
+        </div>
+        <div class="list-group list-group-flush">
+            @foreach (var u in users)
+            {
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">@u.Name</h6>
+                        <small class="text-muted">Role: @u.Role</small>
+                    </div>
+                    <a href="/student/@u.Id" class="btn btn-sm btn-outline-primary">View Courses</a>
+                </div>
+            }
+        </div>
+    </div>
 }
+
+<a href="/courses" class="btn btn-outline-secondary mt-3">&larr; Back to Courses</a>
 
 @code {
     [Parameter] public int id { get; set; }
-
-    List<User>? users;
+    private List<User> users = new();
+    private bool loading = true;
+    private string? error;
 
     protected override async Task OnInitializedAsync()
     {
-        users = await Http.GetFromJsonAsync<List<User>>($"courses/{id}/users");
+        try
+        {
+            users = await Api.GetCourseUsers(id);
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load course students: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
     }
 }

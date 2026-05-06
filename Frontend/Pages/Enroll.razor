@@ -1,30 +1,124 @@
 @page "/enrollment"
-@inject HttpClient Http
+@inject ApiService Api
 
-<h3>Enroll Student</h3>
+<PageTitle>Enroll Student</PageTitle>
 
-<input @bind="userId" type="number" placeholder="User ID" />
-<input @bind="courseId" type="number" placeholder="Course ID" />
+<h2>Enroll Student</h2>
 
-<button @onclick="Enrollment">Enroll</button>
+@if (error != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @error
+        <button type="button" class="btn-close" @onclick="() => error = null"></button>
+    </div>
+}
 
-<p>@message</p>
+@if (success != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @success
+        <button type="button" class="btn-close" @onclick="() => success = null"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        @if (loading)
+        {
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="enrollment" OnValidSubmit="HandleEnroll" class="row g-3">
+                <DataAnnotationsValidator />
+                <div class="col-md-5">
+                    <label class="form-label">Select Student</label>
+                    <select @bind="enrollment.UserId" class="form-select" required>
+                        <option value="0">-- Select a student --</option>
+                        @foreach (var user in users)
+                        {
+                            <option value="@user.Id">@user.Name (@user.Role)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Select Course</label>
+                    <select @bind="enrollment.CourseId" class="form-select" required>
+                        <option value="0">-- Select a course --</option>
+                        @foreach (var course in courses)
+                        {
+                            <option value="@course.Id">@course.Title</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100" disabled="@enrolling">
+                        @(enrolling ? "Enrolling..." : "Enroll")
+                    </button>
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>
 
 @code {
-    int userId;
-    int courseId;
-    string message = "";
+    private List<User> users = new();
+    private List<Course> courses = new();
+    private bool loading = true;
+    private bool enrolling;
+    private string? error;
+    private string? success;
+    private EnrollmentRequest enrollment = new();
 
-    async Task Enrollment()
+    protected override async Task OnInitializedAsync()
     {
-        var req = new EnrollmentRequest
+        try
         {
-            UserId = userId,
-            CourseId = courseId
-        };
+            var userTask = Api.GetUsers();
+            var courseTask = Api.GetCourses();
 
-        var res = await Http.PostAsJsonAsync("enroll", req);
+            await Task.WhenAll(userTask, courseTask);
 
-        message = await res.Content.ReadAsStringAsync();
+            users = userTask.Result;
+            courses = courseTask.Result;
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load data: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task HandleEnroll()
+    {
+        if (enrollment.UserId == 0 || enrollment.CourseId == 0)
+        {
+            error = "Please select both a student and a course.";
+            return;
+        }
+
+        try
+        {
+            enrolling = true;
+            error = null;
+            success = null;
+
+            var result = await Api.EnrollUser(enrollment);
+            success = result;
+            enrollment = new();
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to enroll: {ex.Message}";
+        }
+        finally
+        {
+            enrolling = false;
+        }
     }
 }

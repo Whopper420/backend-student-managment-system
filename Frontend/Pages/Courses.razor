@@ -1,30 +1,126 @@
 @page "/courses"
-@inject HttpClient Http
+@inject ApiService Api
 
-<h3>Courses</h3>
+<PageTitle>Courses</PageTitle>
 
-@if (courses == null)
+<h2>Courses</h2>
+
+@if (error != null)
 {
-    <p>Loading...</p>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @error
+        <button type="button" class="btn-close" @onclick="() => error = null"></button>
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Add New Course</h5>
+    </div>
+    <div class="card-body">
+        <EditForm Model="newCourse" OnValidSubmit="HandleAddCourse" class="row g-3">
+            <DataAnnotationsValidator />
+            <div class="col-md-5">
+                <input @bind="newCourse.Title" class="form-control" placeholder="Course title" required />
+            </div>
+            <div class="col-md-3">
+                <input @bind="newCourse.TeacherId" type="number" class="form-control" placeholder="Teacher ID" min="1" required />
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-success" disabled="@adding">
+                    @(adding ? "Adding..." : "Add Course")
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@if (loading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+else if (courses.Count == 0)
+{
+    <div class="alert alert-info">No courses found.</div>
 }
 else
 {
-    <ul>
-        @foreach (var c in courses)
-        {
-            <li>
-                @c.Title (Teacher: @c.TeacherId)
-                <a href="/course/@c.Id">View Students</a>
-            </li>
-        }
-    </ul>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Teacher ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in courses)
+                {
+                    <tr>
+                        <td>@c.Id</td>
+                        <td>@c.Title</td>
+                        <td>@c.TeacherId</td>
+                        <td>
+                            <a href="/course/@c.Id" class="btn btn-sm btn-outline-primary me-1">View Students</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 @code {
-    List<Course>? courses;
+    private List<Course> courses = new();
+    private bool loading = true;
+    private bool adding;
+    private string? error;
+    private Course newCourse = new();
 
     protected override async Task OnInitializedAsync()
     {
-        courses = await Http.GetFromJsonAsync<List<Course>>("courses");
+        await LoadCourses();
+    }
+
+    private async Task LoadCourses()
+    {
+        try
+        {
+            loading = true;
+            courses = await Api.GetCourses();
+            error = null;
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load courses: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task HandleAddCourse()
+    {
+        try
+        {
+            adding = true;
+            error = null;
+            await Api.AddCourse(newCourse);
+            newCourse = new();
+            await LoadCourses();
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to add course: {ex.Message}";
+        }
+        finally
+        {
+            adding = false;
+        }
     }
 }

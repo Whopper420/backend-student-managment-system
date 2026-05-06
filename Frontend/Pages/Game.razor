@@ -1,0 +1,304 @@
+@page "/game"
+@using System.Timers
+@implements IDisposable
+
+<h3>Tetris</h3>
+
+<p>Score: @score | Level: @level</p>
+
+<div tabindex="0" @onkeydown="HandleKey" style="outline:none;">
+    <div class="board">
+        @for (int y = 0; y < Rows; y++)
+        {
+            <div class="row">
+                @for (int x = 0; x < Cols; x++)
+                {
+                    <div class="cell" style="background:@GetColor(GetCell(x, y))"></div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .board { display:inline-block; background:#111; padding:5px; }
+    .row { display:flex; }
+    .cell {
+        width:20px;
+        height:20px;
+        border:1px solid #222;
+    }
+</style>
+
+@code {
+    const int Rows = 20;
+    const int Cols = 10;
+
+    int[,] grid = new int[Rows, Cols];
+
+    Timer timer = null!;
+    Random rng = new();
+
+    int score = 0;
+    int level = 1;
+
+    int px, py;
+    int[,] piece = null!;
+    int pieceType;
+
+    protected override void OnInitialized()
+    {
+        SpawnPiece();
+
+        timer = new Timer(GetSpeed());
+        timer.Elapsed += (_, __) =>
+        {
+            MoveDown();
+            InvokeAsync(StateHasChanged);
+        };
+        timer.Start();
+    }
+
+    int GetSpeed() => Math.Max(100, 500 - (level - 1) * 50);
+
+    void ResetTimer()
+    {
+        timer.Interval = GetSpeed();
+    }
+
+
+    int GetCell(int x, int y)
+    {
+        if (grid[y, x] != 0)
+            return grid[y, x];
+
+        for (int py2 = 0; py2 < 4; py2++)
+        for (int px2 = 0; px2 < 4; px2++)
+        {
+            if (piece[py2, px2] == 0) continue;
+
+            int gx = px + px2;
+            int gy = py + py2;
+
+            if (gx == x && gy == y)
+                return pieceType;
+        }
+
+        return 0;
+    }
+
+    string GetColor(int v) => v switch
+    {
+        1 => "cyan",     // I
+        2 => "yellow",   // O
+        3 => "purple",   // T
+        4 => "orange",   // L
+        5 => "blue",     // J
+        6 => "green",    // S
+        7 => "red",      // Z
+        _ => "black"
+    };
+
+
+    void HandleKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "ArrowLeft" && !Collides(px - 1, py)) px--;
+        if (e.Key == "ArrowRight" && !Collides(px + 1, py)) px++;
+        if (e.Key == "ArrowDown") MoveDown();
+        if (e.Key == "ArrowUp") Rotate();
+    }
+
+
+    void MoveDown()
+    {
+        if (!Collides(px, py + 1))
+        {
+            py++;
+        }
+        else
+        {
+            Lock();
+            ClearLines();
+            SpawnPiece();
+        }
+    }
+
+    void Lock()
+    {
+        for (int y = 0; y < 4; y++)
+        for (int x = 0; x < 4; x++)
+        {
+            if (piece[y, x] == 0) continue;
+
+            int gx = px + x;
+            int gy = py + y;
+
+            if (gy >= 0)
+                grid[gy, gx] = pieceType;
+        }
+    }
+
+    void ClearLines()
+    {
+        int cleared = 0;
+
+        for (int y = Rows - 1; y >= 0; y--)
+        {
+            bool full = true;
+
+            for (int x = 0; x < Cols; x++)
+                if (grid[y, x] == 0)
+                    full = false;
+
+            if (full)
+            {
+                cleared++;
+
+                for (int row = y; row > 0; row--)
+                    for (int x = 0; x < Cols; x++)
+                        grid[row, x] = grid[row - 1, x];
+
+                for (int x = 0; x < Cols; x++)
+                    grid[0, x] = 0;
+
+                y++;
+            }
+        }
+
+        if (cleared > 0)
+        {
+            score += cleared * 100;
+            level = 1 + score / 500;
+            ResetTimer();
+        }
+    }
+
+
+    void SpawnPiece()
+    {
+        (piece, pieceType) = RandomPiece();
+
+        px = 3;
+        py = 0;
+
+        if (Collides(px, py))
+        {
+            grid = new int[Rows, Cols];
+            score = 0;
+            level = 1;
+            ResetTimer();
+        }
+    }
+
+    (int[,], int) RandomPiece()
+    {
+        return rng.Next(7) switch
+        {
+            0 => (new int[,]
+            {
+                {0,0,0,0},
+                {1,1,1,1},
+                {0,0,0,0},
+                {0,0,0,0}
+            }, 1),
+
+            1 => (new int[,]
+            {
+                {0,0,0,0},
+                {0,1,1,0},
+                {0,1,1,0},
+                {0,0,0,0}
+            }, 2),
+
+            2 => (new int[,]
+            {
+                {0,0,0,0},
+                {0,1,0,0},
+                {1,1,1,0},
+                {0,0,0,0}
+            }, 3),
+
+            3 => (new int[,]
+            {
+                {0,0,0,0},
+                {1,0,0,0},
+                {1,1,1,0},
+                {0,0,0,0}
+            }, 4),
+
+            4 => (new int[,]
+            {
+                {0,0,0,0},
+                {0,0,1,0},
+                {1,1,1,0},
+                {0,0,0,0}
+            }, 5),
+
+            5 => (new int[,]
+            {
+                {0,0,0,0},
+                {0,1,1,0},
+                {1,1,0,0},
+                {0,0,0,0}
+            }, 6),
+
+            _ => (new int[,]
+            {
+                {0,0,0,0},
+                {1,1,0,0},
+                {0,1,1,0},
+                {0,0,0,0}
+            }, 7),
+        };
+    }
+
+
+    int[,] RotateMatrix(int[,] m)
+    {
+        int n = 4;
+        int[,] r = new int[4, 4];
+
+        for (int y = 0; y < n; y++)
+        for (int x = 0; x < n; x++)
+            r[x, n - y - 1] = m[y, x];
+
+        return r;
+    }
+
+    void Rotate()
+    {
+        var old = piece;
+        var rotated = RotateMatrix(piece);
+
+        piece = rotated;
+
+        if (Collides(px, py))
+            piece = old;
+    }
+
+
+    bool Collides(int nx, int ny)
+    {
+        for (int y = 0; y < 4; y++)
+        for (int x = 0; x < 4; x++)
+        {
+            if (piece[y, x] == 0) continue;
+
+            int gx = nx + x;
+            int gy = ny + y;
+
+            if (gx < 0 || gx >= Cols || gy >= Rows)
+                return true;
+
+            if (gy >= 0 && grid[gy, gx] != 0)
+                return true;
+        }
+
+        return false;
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}
